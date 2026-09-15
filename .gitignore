@@ -1,0 +1,11 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# React
+react-version/node_modules/
+react-version/dist/
+react-version/.vite/
+*.log

@@ -1,0 +1,291 @@
+<header class="site-header">
+  <div class="site-header__inner">
+    <div>
+      <div class="eyebrow">УЧЕБНЫЙ ПРОЕКТ • ГЕНЕТИЧЕСКИЕ АЛГОРИТМЫ</div>
+      <h1>Генетическая лаборатория</h1>
+      <p>Эволюция 2D-машин: как случайные конструкции учатся преодолевать трассу.</p>
+    </div>
+    <div class="tech-badge">HTML • CSS • JavaScript</div>
+  </div>
+</header>
+
+<main class="page-content">
+  <section class="intro-card">
+    <div class="intro-icon">🧬</div>
+    <div>
+      <h2>Симуляция эволюции</h2>
+      <p>Наблюдайте за поколениями автомобилей и меняйте параметры генетического алгоритма в реальном времени.</p>
+    </div>
+  </section>
+
+<div class="clearfix">
+  <div class="float-left">
+
+    <canvas id="mainbox" width="800" height="400"></canvas>
+
+    <div class="clearfix">
+      <div class="float-left">
+
+        <div id="graphholder">
+          <canvas id="graphcanvas" width="400" height="250"></canvas>
+          <div class="scale" id="s100">250</div>
+          <div class="scale" id="s75">187</div>
+          <div class="scale" id="s50">125</div>
+          <div class="scale" id="s25">62</div>
+          <div class="scale" id="s0">0</div>
+        </div>
+
+      </div>
+      <div class="float-left">
+
+        <div id="topscoreholder">
+          <input id="toggle-ghost" type="button" value="Посмотреть лучший повтор" /><br/>
+          <div id="topscores"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div id="minimapholder">
+      <!--<img src="reddot.png" id="minimapmarker" />-->
+      <div id="minimapfog"></div>
+      <canvas id="minimap" width="800" height="200"></canvas>
+      <div id="minimapcamera"></div>
+    </div>
+
+    <div id="debug"></div>
+
+  </div>
+
+  <div class="float-left">
+
+    <div id="data">
+      <br/>
+
+      <div class="buttons">
+        <input id="save-progress" type="button" value="Сохранить популяцию" />
+        <input id="restore-progress" type="button" value="Загрузить популяцию" />
+        <input id="toggle-display" type="button" value="Ускорить симуляцию" />
+        <input id="new-population" type="button" value="Новая популяция" />
+        <input id="fast-forward" type="button" value="Перемотка вперед" />
+      </div>
+
+      <div>
+        <label>Создать новый мир</label><br>
+        <input type="text" placeholder="Введите любой текст" id="newseed"/>
+        <input id="confirm-reset" type="button" value="Создать" />
+      </div>
+
+      <table>
+        <tr>
+          <td>Поколение</td><td><div id="generation"></div></td>
+        </tr>
+        <tr>
+          <td>Живые автомобили</td><td><div id="population"></div></td>
+        </tr>
+        <tr>
+          <td>Расстояние</td><td><div id="distancemeter"></div></td>
+        </tr>
+        <tr>
+          <td>Высота</td><td><div id="heightmeter"></div></td>
+        </tr>
+        <tr>
+          <td>Скорость мутации:</td>
+          <td>
+            <select id="mutationrate" >
+              <option value="0">0%</option>
+              <option value="0.01">1%</option>
+              <option value="0.02">2%</option>
+              <option value="0.03">3%</option>
+              <option value="0.04">4%</option>
+              <option value="0.05" selected="selected">5%</option>
+              <option value="0.1">10%</option>
+              <option value="0.2">20%</option>
+              <option value="0.3">30%</option>
+              <option value="0.4">40%</option>
+              <option value="0.5">50%</option>
+              <option value="0.75">75%</option>
+              <option value="1.0">100%</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td>Размер мутации:</td>
+          <td>
+            <select id="mutationsize" >
+              <option value="0">0%</option>
+              <option value="0.01">1%</option>
+              <option value="0.02">2%</option>
+              <option value="0.03">3%</option>
+              <option value="0.04">4%</option>
+              <option value="0.05">5%</option>
+              <option value="0.1">10%</option>
+              <option value="0.2">20%</option>
+              <option value="0.3">30%</option>
+              <option value="0.4">40%</option>
+              <option value="0.5">50%</option>
+              <option value="0.75">75%</option>
+              <option value="1.0" selected="selected">100%</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td>Пол:</td>
+          <td>
+            <select id="floor" >
+              <option value="0" selected="selected">фиксированная</option>
+              <option value="1">изменчивая</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td>Сила тяжести:</td>
+          <td>
+            <select id="gravity" >
+              <option value="24.8">Юпитер (24.8)</option>
+              <option value="11.2">Нептун (11.2)</option>
+              <option value="10.4">Сатурн (10.4)</option>
+              <option value="9.81" selected="selected">Земля (9.81)</option>
+              <option value="8.9">Венера (8.9)</option>
+              <option value="8.7">Уран (8.7)</option>
+              <option value="3.7">Марс/Меркурий (3.7)</option>
+              <option value="1.6">Луна (1.6)</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td>Элитные клоны:</td>
+          <td>
+            <select id="elitesize" >
+              <option value="0">0</option>
+              <option value="1" selected="selected">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+            </select>
+          </td>
+        </tr>
+      </table>
+
+      <br>
+
+      <input type="button" value="Посмотреть лидера" onclick="cw_setCameraTarget(-1)"/>
+      <div id="health"></div>
+      <div id="cars"></div>
+    </div>
+
+  </div>
+</div>
+
+
+<section id="explanation">
+  <div class="explanation-intro">
+    <h2>Как устроен эксперимент</h2>
+    <p>Программа использует генетический алгоритм для преобразования случайных двухколёсных форм в автомобили на протяжении поколений. Физика движения моделируется движком <strong>Box2D</strong>.</p>
+  </div>
+
+  <div class="explanation-grid">
+    <article class="explanation-card">
+      <h3>📱 Управление</h3>
+      <table>
+  <table>
+    <tr>
+      <th>Сохранить популяцию</th>
+      <td>Сохранить текущую популяцию в локальное хранилище.</td>
+    </tr>
+    <tr>
+      <th>Загрузить популяцию</th>
+      <td>Восстановить ранее сохраненную популяцию.</td>
+    </tr>
+    <tr>
+      <th>Ускорение симуляции</th>
+      <td>Переключает рисование, ускоряет симуляцию.</td>
+    </tr>
+    <tr>
+      <th>Новая популяция</th>
+      <td>Создаёт новую популяцию автомобилей на текущей трассе.</td>
+    </tr>
+    <tr>
+      <th>Создать новый мир</th>
+      <td>Одна и та же строка всегда создает одинаковый трек.</td>
+    </tr>
+    <tr>
+      <th>Скорость мутации</th>
+      <td>Вероятность того, что каждый ген каждого мутирует до случайного значения при рождении нового поколения.
+      </td>
+    </tr>
+    <tr>
+      <th>Размер мутации</th>
+      <td>Диапазон, в котором может мутировать каждый ген. Меньшие числа означают, что ген будет иметь значения, близкие к
+        родителю.
+      </td>
+    </tr>
+    <tr>
+      <th>Элитные клоны</th>
+      <td>n лучших автомобилей, которые будут скопированы в следующее поколение.</td>
+    </tr>
+    <tr>
+      <th>Посмотреть лучший повтор</th>
+      <td>Приостановите текущую симуляцию и покажите лучшую машину. Нажмите второй раз, чтобы возобновить
+        моделирование.
+      </td>
+    </tr>
+  </table>
+      </article>
+
+      <article class="explanation-card">
+        <h3>📈 График</h3>
+        <table>
+    <tr>
+      <th>Красный</th>
+      <td>Наивысший балл в каждом поколении</td>
+    </tr>
+    <tr>
+      <th>Зеленый</th>
+      <td>Среднее значение 10 лучших автомобилей каждого поколения</td>
+    </tr>
+    <tr>
+      <th>Синий</th>
+      <td>Среднее значение всего поколения</td>
+    </tr>
+  </table>
+      </article>
+
+      <article class="explanation-card">
+        <h3>🧬 Геном автомобиля</h3>
+        <p>
+    Геном состоит из:
+  </p>
+  <ul>
+    <li>Форма (8 генов, по 1 на вершину)</li>
+    <li>Размер колеса (2 гена, по 1 на колесо)</li>
+    <li>Положение колес (2 гена, по 1 на колесо)</li>
+    <li>Плотность колес (2 гена, по 1 на колесо). Более темные колеса означают более плотные колеса.</li>
+    <li>Плотность шасси (1 ген): более темный корпус означает более плотное шасси</li>
+        </ul>
+      </article>
+
+      <article class="explanation-card">
+        <h3>🔬 Идея лабораторной</h3>
+        <p>Меняйте один параметр за раз и наблюдайте, как меняются скорость обучения, устойчивость популяции и лучший результат.</p>
+        <h3>Примечание</h3>
+        <p>Местность становится сложнее с расстоянием.<br/></p>
+      </article>
+    </div>
+
+</section>
+
+<div name="minimapmarker" class="minimapmarker"></div>
+
+<div name="healthbar" class="healthbar" onclick="cw_setCameraTarget(this.car_index)">
+  <div name="health" class="health"></div>
+  <div name="healthtext" class="healthtext"></div>
+</div>
+
+</main>

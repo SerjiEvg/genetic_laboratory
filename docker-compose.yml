@@ -1,0 +1,12 @@
+services:
+  html:
+    build:
+      context: ./html-version
+    ports:
+      - "8080:80"
+
+  react:
+    build:
+      context: ./react-version
+    ports:
+      - "8081:80"

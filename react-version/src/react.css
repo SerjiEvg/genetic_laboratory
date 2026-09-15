@@ -1,0 +1,19 @@
+/* React-specific shell. Original simulation styles live in /public/styles.css. */
+@import url('/styles.css');
+
+.react-header { color:#fff; background:linear-gradient(115deg,#252d78 0%,#3e37b8 52%,#7133ea 100%); }
+.react-header__inner { width:min(1280px,calc(100% - 60px)); min-height:150px; margin:0 auto; padding:25px 0 27px; display:flex; align-items:flex-start; justify-content:space-between; gap:32px; }
+.react-header h1 { margin:0; font-size:clamp(32px,4vw,48px); line-height:1.05; letter-spacing:-.03em; font-weight:800; }
+.react-header p { margin:13px 0 0; font-size:17px; color:rgba(255,255,255,.86); }
+.react-page { width:min(1280px,calc(100% - 60px)); margin:0 auto; padding:24px 0 34px; }
+.react-intro { min-height:98px; margin-bottom:18px; padding:20px; display:flex; align-items:center; gap:18px; background:#fff; border:1px solid #d9e2f0; border-radius:20px; box-shadow:0 12px 30px rgba(44,72,125,.08); }
+.react-intro__icon { width:52px; height:52px; flex:0 0 52px; display:grid; place-items:center; border-radius:16px; background:linear-gradient(135deg,#eee7ff,#f3dfff); font-size:28px; }
+.react-intro h2 { margin:0 0 4px; font-size:25px; line-height:1.15; }
+.react-intro p { margin:0; color:#64779d; font-size:16px; }
+.legacy-simulation-host { min-height:400px; }
+.react-error { padding:24px; border:1px solid #e2b4b4; border-radius:16px; background:#fff5f5; color:#7a1f1f; }
+@media (max-width: 700px) {
+  .react-header__inner,.react-page { width:min(100% - 28px,1280px); }
+  .react-header__inner { flex-direction:column; }
+  .tech-badge { display:none; }
+}
