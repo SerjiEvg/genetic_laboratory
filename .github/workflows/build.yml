@@ -10,19 +10,28 @@ on:
       - main
 
 jobs:
+  # --------------------------------------------------
+  # HTML VERSION
+  # --------------------------------------------------
   build-html:
-    name: Build HTML version
+    name: Check HTML version
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Check HTML project
+      - name: Check required HTML files
         run: |
           test -f html-version/index.html
           test -f html-version/styles.css
           test -f html-version/bundle.js
+          test -f html-version/bundle-main.js
+          test -f html-version/bundle-bare.js
+
+      - name: Check HTML Dockerfile
+        run: |
+          test -f html-version/Dockerfile
 
       - name: Prepare HTML artifact
         run: |
@@ -36,6 +45,9 @@ jobs:
           path: artifacts/html/
 
 
+  # --------------------------------------------------
+  # REACT VERSION
+  # --------------------------------------------------
   build-react:
     name: Build React version
     runs-on: ubuntu-latest
@@ -44,18 +56,39 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Node 24 — актуальная версия для GitHub Actions
+      # npm cache намеренно НЕ используется,
+      # поскольку package-lock.json пока отсутствует.
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 24
 
+      - name: Check React project
+        working-directory: react-version
+        run: |
+          test -f package.json
+          test -f index.html
+          test -f vite.config.js
+          test -f src/main.jsx
+          test -f src/App.jsx
+
+      # package-lock.json не требуется.
+      # npm install создаёт зависимости непосредственно
+      # на runner GitHub.
       - name: Install dependencies
         working-directory: react-version
         run: npm install
 
-      - name: Build React
+      - name: Build React application
         working-directory: react-version
         run: npm run build
+
+      - name: Check build result
+        working-directory: react-version
+        run: |
+          test -f dist/index.html
+          test -d dist/assets
 
       - name: Upload React artifact
         uses: actions/upload-artifact@v4
@@ -64,6 +97,9 @@ jobs:
           path: react-version/dist/
 
 
+  # --------------------------------------------------
+  # DOCKER
+  # --------------------------------------------------
   build-docker:
     name: Build Docker images
     runs-on: ubuntu-latest
@@ -87,3 +123,7 @@ jobs:
           docker build \
             -t genetic-simulation-react:latest \
             ./react-version
+
+      - name: Show Docker images
+        run: |
+          docker images | grep genetic-simulation
