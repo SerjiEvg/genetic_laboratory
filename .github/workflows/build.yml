@@ -1,4 +1,4 @@
-name: Build Genetic Simulation
+name: Build and Publish Genetic Simulation
 
 on:
   push:
@@ -9,7 +9,13 @@ on:
     branches:
       - main
 
+# Разрешаем GitHub Actions публиковать пакеты в GHCR
+permissions:
+  contents: read
+  packages: write
+
 jobs:
+
   # --------------------------------------------------
   # HTML VERSION
   # --------------------------------------------------
@@ -28,9 +34,6 @@ jobs:
           test -f html-version/bundle.js
           test -f html-version/bundle-main.js
           test -f html-version/bundle-bare.js
-
-      - name: Check HTML Dockerfile
-        run: |
           test -f html-version/Dockerfile
 
       - name: Prepare HTML artifact
@@ -56,9 +59,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Node 24 — актуальная версия для GitHub Actions
-      # npm cache намеренно НЕ используется,
-      # поскольку package-lock.json пока отсутствует.
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -73,9 +73,6 @@ jobs:
           test -f src/main.jsx
           test -f src/App.jsx
 
-      # package-lock.json не требуется.
-      # npm install создаёт зависимости непосредственно
-      # на runner GitHub.
       - name: Install dependencies
         working-directory: react-version
         run: npm install
@@ -98,32 +95,66 @@ jobs:
 
 
   # --------------------------------------------------
-  # DOCKER
+  # BUILD AND PUBLISH DOCKER IMAGES
   # --------------------------------------------------
-  build-docker:
-    name: Build Docker images
+  docker:
+    name: Build and publish Docker images
     runs-on: ubuntu-latest
 
     needs:
       - build-html
       - build-react
 
+    # Не публикуем образы для Pull Request.
+    # Публикация выполняется только после push в main.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build HTML Docker image
-        run: |
-          docker build \
-            -t genetic-simulation-html:latest \
-            ./html-version
+      # Авторизация в GitHub Container Registry
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build React Docker image
-        run: |
-          docker build \
-            -t genetic-simulation-react:latest \
-            ./react-version
+      # Metadata для HTML image
+      - name: Docker metadata HTML
+        id: meta-html
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/serjievg/genetic-simulation-html
+          tags: |
+            type=raw,value=latest
+            type=sha
 
-      - name: Show Docker images
-        run: |
-          docker images | grep genetic-simulation
+      # Metadata для React image
+      - name: Docker metadata React
+        id: meta-react
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/serjievg/genetic-simulation-react
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      # Build & Push HTML
+      - name: Build and push HTML image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./html-version
+          push: true
+          tags: ${{ steps.meta-html.outputs.tags }}
+          labels: ${{ steps.meta-html.outputs.labels }}
+
+      # Build & Push React
+      - name: Build and push React image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./react-version
+          push: true
+          tags: ${{ steps.meta-react.outputs.tags }}
+          labels: ${{ steps.meta-react.outputs.labels }}
