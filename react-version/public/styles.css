@@ -505,7 +505,7 @@ body {
     font-size: 11px;
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 900px) {
     .site-header__inner,
     .page-content {
         width: min(960px, calc(100% - 32px));
