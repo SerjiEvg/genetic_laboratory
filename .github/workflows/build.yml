@@ -1,4 +1,4 @@
-name: Build and Publish Genetic Simulation
+name: Build Genetic Simulation
 
 on:
   push:
@@ -9,25 +9,21 @@ on:
     branches:
       - main
 
-# Разрешаем GitHub Actions публиковать пакеты в GHCR
-permissions:
-  contents: read
-  packages: write
 
 jobs:
 
-  # --------------------------------------------------
+  # ==================================================
   # HTML VERSION
-  # --------------------------------------------------
+  # ==================================================
   build-html:
-    name: Check HTML version
+    name: Build HTML version
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Check required HTML files
+      - name: Check HTML project
         run: |
           test -f html-version/index.html
           test -f html-version/styles.css
@@ -36,21 +32,16 @@ jobs:
           test -f html-version/bundle-bare.js
           test -f html-version/Dockerfile
 
-      - name: Prepare HTML artifact
-        run: |
-          mkdir -p artifacts/html
-          cp -r html-version/* artifacts/html/
-
-      - name: Upload HTML artifact
+      - name: Upload HTML project
         uses: actions/upload-artifact@v4
         with:
-          name: genetic-simulation-html
-          path: artifacts/html/
+          name: genetic-simulation-html-source
+          path: html-version/
 
 
-  # --------------------------------------------------
+  # ==================================================
   # REACT VERSION
-  # --------------------------------------------------
+  # ==================================================
   build-react:
     name: Build React version
     runs-on: ubuntu-latest
@@ -72,6 +63,7 @@ jobs:
           test -f vite.config.js
           test -f src/main.jsx
           test -f src/App.jsx
+          test -f Dockerfile
 
       - name: Install dependencies
         working-directory: react-version
@@ -81,80 +73,78 @@ jobs:
         working-directory: react-version
         run: npm run build
 
-      - name: Check build result
+      - name: Check React build
         working-directory: react-version
         run: |
           test -f dist/index.html
           test -d dist/assets
 
-      - name: Upload React artifact
+      - name: Upload React build
         uses: actions/upload-artifact@v4
         with:
-          name: genetic-simulation-react
+          name: genetic-simulation-react-build
           path: react-version/dist/
 
 
-  # --------------------------------------------------
-  # BUILD AND PUBLISH DOCKER IMAGES
-  # --------------------------------------------------
-  docker:
-    name: Build and publish Docker images
+  # ==================================================
+  # DOCKER IMAGES
+  # ==================================================
+  build-docker:
+    name: Build Docker images
     runs-on: ubuntu-latest
 
     needs:
       - build-html
       - build-react
 
-    # Не публикуем образы для Pull Request.
-    # Публикация выполняется только после push в main.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Авторизация в GitHub Container Registry
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      # ----------------------------------------------
+      # HTML IMAGE
+      # ----------------------------------------------
+      - name: Build HTML Docker image
+        run: |
+          docker build \
+            -t genetic-simulation-html:latest \
+            ./html-version
 
-      # Metadata для HTML image
-      - name: Docker metadata HTML
-        id: meta-html
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/serjievg/genetic-simulation-html
-          tags: |
-            type=raw,value=latest
-            type=sha
+      - name: Save HTML Docker image
+        run: |
+          docker save \
+            genetic-simulation-html:latest \
+            -o genetic-simulation-html.tar
 
-      # Metadata для React image
-      - name: Docker metadata React
-        id: meta-react
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/serjievg/genetic-simulation-react
-          tags: |
-            type=raw,value=latest
-            type=sha
+      # ----------------------------------------------
+      # REACT IMAGE
+      # ----------------------------------------------
+      - name: Build React Docker image
+        run: |
+          docker build \
+            -t genetic-simulation-react:latest \
+            ./react-version
 
-      # Build & Push HTML
-      - name: Build and push HTML image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./html-version
-          push: true
-          tags: ${{ steps.meta-html.outputs.tags }}
-          labels: ${{ steps.meta-html.outputs.labels }}
+      - name: Save React Docker image
+        run: |
+          docker save \
+            genetic-simulation-react:latest \
+            -o genetic-simulation-react.tar
 
-      # Build & Push React
-      - name: Build and push React image
-        uses: docker/build-push-action@v6
+      # ----------------------------------------------
+      # CHECK TAR FILES
+      # ----------------------------------------------
+      - name: Check Docker images
+        run: |
+          ls -lh *.tar
+
+      # ----------------------------------------------
+      # UPLOAD DOCKER IMAGES
+      # ----------------------------------------------
+      - name: Upload Docker images
+        uses: actions/upload-artifact@v4
         with:
-          context: ./react-version
-          push: true
-          tags: ${{ steps.meta-react.outputs.tags }}
-          labels: ${{ steps.meta-react.outputs.labels }}
+          name: genetic-simulation-docker-images
+          path: |
+            genetic-simulation-html.tar
+            genetic-simulation-react.tar
